@@ -86,6 +86,13 @@ Executing the task via gradlew (gradle wrapper) gives the advantage of executing
 ``` gradle
 $ ./gradlew buildWithVersion
 
+> Task :deriveDynamicVersion
+Building with code version 1.0.3
+Dynamic version is 1.0.3
 
+> Task :buildWithVersion
+Renaming the files with dynamic versions
 
+BUILD SUCCESSFUL in 4s
+7 actionable tasks: 7 executed
 ```
