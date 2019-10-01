@@ -23,9 +23,9 @@ BUILD SUCCESSFUL in 1s
 ``` sh
 vi build.gradle
 ```
-Add below new tasks (deriveDynamicVersion and buildWithVersion). Along with that introduce two new properties called archivesBaseName and version.
-The DeriveDynamicVersionTask can have your own logic how you want to derive the dynamic version of the JAR, it could be based on semVer, or based on timestamp, or a sequence number etc. 
-And then comes the import task buildWithVersion which is of type 'Copy' and copies the jar from build/libs folder into build/custom folder, when it copies it renames the jar name as well with dynamic value. This task is dependent on the build task and the above deriveDynamicVersion task
+* Add below new tasks (deriveDynamicVersion and buildWithVersion). Along with that introduce two new properties called archivesBaseName and version.
+* The DeriveDynamicVersionTask can have your own logic how you want to derive the dynamic version of the JAR, it could be based on semVer, or based on timestamp, or a sequence number etc. 
+* And then comes the import task buildWithVersion which is of type 'Copy' and copies the jar from build/libs folder into build/custom folder, when it copies it renames the jar name as well with dynamic value. This task is dependent on the build task and the above deriveDynamicVersion task
 
 ``` vi
 archivesBaseName  = 'java-api'
