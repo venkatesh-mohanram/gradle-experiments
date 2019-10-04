@@ -5,3 +5,4 @@ It Good to go in this order
 
 1. [gradle-custom-tasks](gradle-custom-tasks)
 2. [gradle-copy-task](gradle-copy-task)
+3. [gradle-maven-publish](gradle-maven-publish)
