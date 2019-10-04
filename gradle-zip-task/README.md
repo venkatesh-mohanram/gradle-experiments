@@ -34,7 +34,7 @@ archivesBaseName  = 'java-api'
 version = '1.0'
 
 /*
- *  This task is used to package the resource folder in ZIP format
+ *  This task is used to package the source folder in ZIP format
  */
 task packageSource(type: Zip) {
     archiveFileName = "${archivesBaseName}-source-${version}.zip"	    
