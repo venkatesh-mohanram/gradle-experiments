@@ -64,8 +64,10 @@ Packaging the source folder as zip
 
 BUILD SUCCESSFUL in 17s
 5 actionable tasks: 4 executed, 1 up-to-date
-
-$ ls build/libs/java-api-
+```
+List the files inside the build folder and we can see source zip as well along with the jar
+``` sh
+$ ls build/libs/
 java-api-1.0.jar         java-api-source-1.0.zip
 
 ```
