@@ -1,16 +1,16 @@
 ## Sequence of Steps
 ### Create a directory
 Create a directory and get into the directory
-``` sh
+``` bash
 $ mkdir gradle-input-prompt-task
 ```
-```
+``` bash
 $ cd gradle-input-prompt-task
 ```
 ### Initialize a Gradle project
 Executing 'gradle init' will initialize an empty project with all the necessary files
 
-``` sh
+``` bash
 $ gradle init --type java-library
 
 > Task :init
