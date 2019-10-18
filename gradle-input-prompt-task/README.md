@@ -2,10 +2,10 @@
 ### Create a directory
 Create a directory and get into the directory
 ``` sh
-$ mkdir gradle-copy-tasks
+$ mkdir gradle-input-prompt-task
 ```
 ```
-$ cd gradle-copy-tasks
+$ cd gradle-input-prompt-task
 ```
 ### Initialize a Gradle project
 Executing 'gradle init' will initialize an empty project with all the necessary files
@@ -23,76 +23,197 @@ BUILD SUCCESSFUL in 1s
 ``` sh
 vi build.gradle
 ```
-* Add below new tasks (deriveDynamicVersion and buildWithVersion). Along with that introduce two new properties called archivesBaseName and version.
-* The DeriveDynamicVersionTask can have your own logic how you want to derive the dynamic version of the JAR, it could be based on semVer, or based on timestamp, or a sequence number etc. 
-* And then comes the import task buildWithVersion which is of type 'Copy' and copies the jar from build/libs folder into build/custom folder, when it copies it renames the jar name as well with dynamic value. This task is dependent on the build task and the above deriveDynamicVersion task
+* Add below new task publishToArtifactory. This task will be uploading the jar into the artifactory. 
+* This task accepts the credientials of the artifactory account and uses it for invoking the artifactory REST API.
+* We can have the credentials stored in the build.gradle or gradle.properties but will make the credentials exposed to everyone.
+* This task can either accept it as a part of the command line args or it will prompt the user to enter the credentials if it is not passed as a command line arguments
 
 ``` vi
 archivesBaseName  = 'java-api'
 version = '1.0'
 
-class DeriveDynamicVersionTask extends DefaultTask {
-	String dVersion
-	String codeVersion
+class PublishToArtifactoryTask extends DefaultTask {
+	@Input
+	String username
+	@Input
+	String password
+	String artifactory	
+	String buildDir
 	
+	PublishToArtifactoryTask() {
+		setUsername("default")
+		setPassword("default")
+	}
 	@TaskAction
-	void build() {
-		// Have you own logic of deriving the dynamic version for the jar
-		// One option is to use the look into the number of commits and add it as a third field
-		dVersion = codeVersion.concat('.3')
-		println "Building with code version $dVersion"
+	void build() {		
+		if (username == "default") {
+			BufferedReader br = new BufferedReader(new InputStreamReader(System.in))
+			println "> Enter the username:"
+			username = br.readLine()
+		}
+		if (password == "default") {
+			BufferedReader br = new BufferedReader(new InputStreamReader(System.in))
+			println "> Enter the password:"
+			password = br.readLine()
+		}
+		println "Username is $username and the password is $password"
+		File customFolder = new File(buildDir)
+		if (customFolder.exists()) {
+			// TODO: Upload the jar to the artifactory
+			println "Folder exists and carrying out the operations"			
+		} else {
+			println "No jar present in $buildDir for deployment"
+		}
 	}
-}
-task deriveDynamicVersion(type: DeriveDynamicVersionTask) {
-	group 'Custom'
-	description 'Derives the new version what should be used based on the number of commits'		
-	dVersion 	 
-	codeVersion 	
 	
-	doFirst {		
-		codeVersion = version
+	@Option(option = 'username', description = 'Username/email account having permission to publish to artifactory')
+	void setUsername(final String username) {
+		this.username = username
 	}
 	
-	doLast {
-		// Assign the dynamically generated version number
-		deriveDynamicVersion.ext.dynamicVersion = dVersion	
-		println "Dynamic version is $deriveDynamicVersion.ext.dynamicVersion"
+	@Option(option = 'password', description = 'Password of the given username/email')
+	void setPassword(final String password) {
+		this.password = password
 	}
+	
 }
 
-task buildWithVersion(type: Copy) {
-	group 'Custom'
-	description 'Assembles with the version based on the number of commits'				
-	dependsOn build
-	dependsOn deriveDynamicVersion
+ 
+task publishToArtifactory(type: PublishToArtifactoryTask) {
+	group 'Custom'			
+	description 'Publishes the jar to the artifactory'		
+	artifactory = 'http://localhost/artifactory/repo'	
+	buildDir = 'build/libs'
 	
-	// Copying the jar and rename it with dynamic value
-	from (file("$buildDir/libs/${archivesBaseName}-${version}.jar")) {
-		rename ({
-			String newJar = "${archivesBaseName}-${deriveDynamicVersion.dynamicVersion}.jar"
-			return newJar
-		})
-	}	
-	into ("$buildDir/custom")	
-	doLast {		
-		println "Renaming the files with dynamic versions"
+	doFirst() {			
+		
 	}
 }
 ```
 
+### Listing down all the tasks
+We have grouped this task under the custom task and when we list all the tasks we will see it under the custom
+
+``` gradle
+$ ./gradlew tasks
+
+> Task :tasks
+
+------------------------------------------------------------
+Tasks runnable from root project
+------------------------------------------------------------
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project.
+build - Assembles and tests this project.
+buildDependents - Assembles and tests this project and all projects that depend on it.
+buildNeeded - Assembles and tests this project and all projects it depends on.
+classes - Assembles main classes.
+clean - Deletes the build directory.
+jar - Assembles a jar archive containing the main classes.
+testClasses - Assembles test classes.
+
+Build Setup tasks
+-----------------
+init - Initializes a new Gradle build.
+wrapper - Generates Gradle wrapper files.
+
+Custom tasks
+------------
+publishToArtifactory - Publishes the jar to the artifactory
+
+Documentation tasks
+-------------------
+javadoc - Generates Javadoc API documentation for the main source code.
+
+Help tasks
+----------
+buildEnvironment - Displays all buildscript dependencies declared in root project 'gradle-input-prompt-task'.
+components - Displays the components produced by root project 'gradle-input-prompt-task'. [incubating]
+dependencies - Displays all dependencies declared in root project 'gradle-input-prompt-task'.
+dependencyInsight - Displays the insight into a specific dependency in root project 'gradle-input-prompt-task'.
+dependentComponents - Displays the dependent components of components in root project 'gradle-input-prompt-task'. [incubating]
+help - Displays a help message.
+model - Displays the configuration model of root project 'gradle-input-prompt-task'. [incubating]
+projects - Displays the sub-projects of root project 'gradle-input-prompt-task'.
+properties - Displays the properties of root project 'gradle-input-prompt-task'.
+tasks - Displays the tasks runnable from root project 'gradle-input-prompt-task'.
+
+Verification tasks
+------------------
+check - Runs all checks.
+test - Runs the unit tests.
+
+Rules
+-----
+Pattern: clean<TaskName>: Cleans the output files of a task.
+Pattern: build<ConfigurationName>: Assembles the artifacts of a configuration.
+Pattern: upload<ConfigurationName>: Assembles and uploads the artifacts belonging to a configuration.
+
+To see all tasks and more detail, run gradlew tasks --all
+
+To see more detail about a task, run gradlew help --task <task>
+
+BUILD SUCCESSFUL in 2s
+1 actionable task: 1 executed
+```
+
+If we want to know the usages of a task, we can use the help task. It will explain what are the parameters we need to pass when we execute it
+
+```sh
+$ ./gradlew help --task publishToArtifactory
+
+> Task :help
+Detailed task information for publishToArtifactory
+
+Path
+     :publishToArtifactory
+
+Type
+     PublishToArtifactoryTask (PublishToArtifactoryTask)
+
+Options
+     --password     Password of the given username/email
+
+     --username     Username/email account having permission to publish to artifactory
+
+Description
+     Publishes the jar to the artifactory
+
+Group
+     Custom
+
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed
+```
 ### Executing the tasks
 Executing the task via gradlew (gradle wrapper) gives the advantage of executing anywhere even if we do not have gradle installed
 
 ``` gradle
-$ ./gradlew buildWithVersion
+$ ./gradlew publishToArtifactory --username venkatesh --password abcd1234
 
-> Task :deriveDynamicVersion
-Building with code version 1.0.3
-Dynamic version is 1.0.3
+> Task :publishToArtifactory
+Username is venkatesh and the password is abcd1234
+Folder exists and carrying out the operations
 
-> Task :buildWithVersion
-Renaming the files with dynamic versions
+BUILD SUCCESSFUL in 1s
+1 actionable task: 1 executed
+```
 
-BUILD SUCCESSFUL in 4s
-7 actionable tasks: 7 executed
+If we do not pass the arguments in the command line then it will prompt you to enter it
+
+```sh
+$ ./gradlew publishToArtifactory
+
+> Task :publishToArtifactory
+> Enter the username:
+<--<-----<-------------> 0% EXECUTING [6s]
+> Enter the password:
+<---<---<-------------> 0% EXECUTING [10s]
+Username is venkatesh and the password is abcd1234
+Folder exists and carrying out the operations
+
+BUILD SUCCESSFUL in 12s
+1 actionable task: 1 executed
 ```
