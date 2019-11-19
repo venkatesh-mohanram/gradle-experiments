@@ -1,16 +1,16 @@
 ## Sequence of Steps
 ### Create a directory
 Create a directory and get into the directory
-``` sh
+``` bash
 $ mkdir gradle-input-prompt-task
 ```
-```
+``` bash
 $ cd gradle-input-prompt-task
 ```
 ### Initialize a Gradle project
 Executing 'gradle init' will initialize an empty project with all the necessary files
 
-``` gradle
+``` bash
 $ gradle init --type java-library
 
 > Task :init
@@ -28,7 +28,7 @@ vi build.gradle
 * We can have the credentials stored in the build.gradle or gradle.properties but will make the credentials exposed to everyone.
 * This task can either accept it as a part of the command line args or it will prompt the user to enter the credentials if it is not passed as a command line arguments
 
-``` vi
+``` gradle
 archivesBaseName  = 'java-api'
 version = '1.0'
 
@@ -94,7 +94,7 @@ task publishToArtifactory(type: PublishToArtifactoryTask) {
 ### Listing down all the tasks
 We have grouped this task under the custom task and when we list all the tasks we will see it under the custom
 
-``` gradle
+``` sh
 $ ./gradlew tasks
 
 > Task :tasks
@@ -190,7 +190,7 @@ BUILD SUCCESSFUL in 1s
 ### Executing the tasks
 Executing the task via gradlew (gradle wrapper) gives the advantage of executing anywhere even if we do not have gradle installed
 
-``` gradle
+``` sh
 $ ./gradlew publishToArtifactory --username venkatesh --password abcd1234
 
 > Task :publishToArtifactory
