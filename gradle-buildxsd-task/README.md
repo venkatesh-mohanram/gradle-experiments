@@ -2,10 +2,10 @@
 ### Create a directory
 Create a directory and get into the directory
 ``` sh
-$ mkdir gradle-copy-tasks
+$ mkdir gradle-buildxsd-task
 ```
 ```
-$ cd gradle-copy-tasks
+$ cd gradle-buildxsd-task
 ```
 ### Initialize a Gradle project
 Executing 'gradle init' will initialize an empty project with all the necessary files
@@ -23,76 +23,59 @@ BUILD SUCCESSFUL in 1s
 ``` sh
 vi build.gradle
 ```
-* Add below new tasks (deriveDynamicVersion and buildWithVersion). Along with that introduce two new properties called archivesBaseName and version.
-* The DeriveDynamicVersionTask can have your own logic how you want to derive the dynamic version of the JAR, it could be based on semVer, or based on timestamp, or a sequence number etc. 
-* And then comes the import task buildWithVersion which is of type 'Copy' and copies the jar from build/libs folder into build/custom folder, when it copies it renames the jar name as well with dynamic value. This task is dependent on the build task and the above deriveDynamicVersion task
+* Add below new tasks (buildXSD and copyXSD). Along with that introduce two new properties called archivesBaseName and version.
+* The buildXSD is a JavaExec task and it uses apache XmlBeans to create the JAXB classes from the xsd file. 
+* The copyXSD task is used to copy the jar into build/libs folder
 
 ``` vi
-archivesBaseName  = 'java-api'
+archivesBaseName  = 'jaxb-api'
 version = '1.0'
 
-class DeriveDynamicVersionTask extends DefaultTask {
-	String dVersion
-	String codeVersion
-	
-	@TaskAction
-	void build() {
-		// Have you own logic of deriving the dynamic version for the jar
-		// One option is to use the look into the number of commits and add it as a third field
-		dVersion = codeVersion.concat('.3')
-		println "Building with code version $dVersion"
-	}
+configurations {
+    xmlbean
 }
-task deriveDynamicVersion(type: DeriveDynamicVersionTask) {
-	group 'Custom'
-	description 'Derives the new version what should be used based on the number of commits'		
-	dVersion 	 
-	codeVersion 	
-	
-	doFirst {		
-		codeVersion = version
+
+dependencies {
+    xmlbean group: 'org.apache.xmlbeans', name: 'xmlbeans', version: '2.5.0'
+}
+
+task buildXSD(type: JavaExec) {
+    classpath configurations.xmlbean
+    main = "org.apache.xmlbeans.impl.tool.SchemaCompiler"
+    args "-debug", "src/xsd"
+}
+
+task copyXSD(type: Copy) {
+	dependsOn buildXSD
+	from(file("xmltypes.jar")) {
+		rename ({
+			return "${archivesBaseName}-${version}.jar"
+		})
 	}
-	
+	into ("build/libs")
 	doLast {
-		// Assign the dynamically generated version number
-		deriveDynamicVersion.ext.dynamicVersion = dVersion	
-		println "Dynamic version is $deriveDynamicVersion.ext.dynamicVersion"
+		println "Copied the jar into build/libs folder"
 	}
 }
 
-task buildWithVersion(type: Copy) {
-	group 'Custom'
-	description 'Assembles with the version based on the number of commits'				
-	dependsOn build
-	dependsOn deriveDynamicVersion
-	
-	// Copying the jar and rename it with dynamic value
-	from (file("$buildDir/libs/${archivesBaseName}-${version}.jar")) {
-		rename ({
-			String newJar = "${archivesBaseName}-${deriveDynamicVersion.dynamicVersion}.jar"
-			return newJar
-		})
-	}	
-	into ("$buildDir/custom")	
-	doLast {		
-		println "Renaming the files with dynamic versions"
-	}
-}
+build.dependsOn copyXSD
 ```
 
 ### Executing the tasks
 Executing the task via gradlew (gradle wrapper) gives the advantage of executing anywhere even if we do not have gradle installed
 
 ``` gradle
-$ ./gradlew buildWithVersion
+$ ./gradlew build
 
-> Task :deriveDynamicVersion
-Building with code version 1.0.3
-Dynamic version is 1.0.3
+> Task :buildXSD
+Time to build schema type system: 0.483 seconds
+Time to generate code: 0.094 seconds
+Time to compile code: 1.355 seconds
+Compiled types to: xmltypes.jar
 
-> Task :buildWithVersion
-Renaming the files with dynamic versions
+> Task :copyXSD
+Copied the jar into build/libs folder
 
-BUILD SUCCESSFUL in 4s
-7 actionable tasks: 7 executed
+BUILD SUCCESSFUL in 5s
+6 actionable tasks: 2 executed, 4 up-to-date
 ```
