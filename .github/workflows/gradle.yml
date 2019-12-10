@@ -13,5 +13,7 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    - name: Build with Gradle
+    - name: make it executable
+      run: chmod =X ./gradle-zip-task/gradlew
+    - name: Build with Gradle      
       run: ./gradle-zip-task/gradlew build
