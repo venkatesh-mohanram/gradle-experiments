@@ -16,4 +16,4 @@ jobs:
     - name: make it executable
       run: chmod +X ./gradle-zip-task/gradlew
     - name: Build with Gradle      
-      run: ./gradle-zip-task/gradlew build
+      run: cd ./gradle-zip-task && ./gradlew build
