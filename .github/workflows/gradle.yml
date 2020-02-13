@@ -13,7 +13,15 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
-    - name: make it executable
-      run: chmod +X ./gradle-zip-task/gradlew
-    - name: Build with Gradle      
-      run: cd ./gradle-zip-task && chmod +x gradlew && ./gradlew build
+    - name: Build with Gradle gradle-zip-task
+      run: cd ./gradle-zip-task && chmod +x gradlew && ./gradlew build && cd -
+    - name: Build with Gradle gradle-maven-publish
+      run: cd ./gradle-maven-publish && chmod +x gradlew && ./gradlew build && cd -      
+    - name: Build with Gradle gradle-input-prompt-task
+      run: cd ./gradle-input-prompt-task && chmod +x gradlew && ./gradlew build && cd -
+    - name: Build with Gradle gradle-custom-tasks
+      run: cd ./gradle-custom-tasks && chmod +x gradlew && ./gradlew build && cd -
+    - name: Build with Gradle gradle-copy-task
+      run: cd ./gradle-copy-task && chmod +x gradlew && ./gradlew build && cd -
+    - name: Build with Gradle gradle-buildxsd-task
+      run: cd ./gradle-buildxsd-task && chmod +x gradlew && ./gradlew build && cd -      
